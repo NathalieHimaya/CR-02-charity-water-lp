@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>charity: water - Every Drop Counts</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon"><img src="img/water-can.png"></span>
+                <span class="logo-text">charity: water</span>
+            </div>
+            <button class="cta-button">Give 💧</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">
+                            Every Drop in the Bucket.<br>
+                            Goes to Their Glass.
+                        </h1>
+                        <p class="hero-subtitle">
+                            Your gift turns water to opportunity,<br>
+                            for families, children, and entire regions
+                        </p>
+                        <button class="primary-button" onclick="triggerConfetti(event)">Be the Change</button>
+                        <p class="hero-tagline">We don't promise change. We pour it.</p>
+                    </div>
+<!-- CONFETTI START HERE -->
+
+  <canvas class="confetti-canvas" id="confetti-canvas"></canvas>
+
+   <script>
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiPieces = [];
+        let animationId;
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Confetti piece class
+        class ConfettiPiece {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = Math.random() * 12 + 8;
+                this.height = Math.random() * 8 + 4;
+                this.speedX = (Math.random() - 0.5) * 15;
+                this.speedY = Math.random() * -20 - 10;
+                this.gravity = 0.4;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 15;
+                this.color = this.getRandomColor();
+                this.shape = this.getRandomShape();
+                this.opacity = 1;
+                this.decay = 0.008;
+                this.wobble = Math.random() * 0.1 + 0.05;
+                this.wobbleSpeed = Math.random() * 0.1 + 0.05;
+                this.time = 0;
+            }
+
+            getRandomColor() {
+                const colors = [
+                    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
+                    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+                    '#FFC907', '#FF1744', '#00E676', '#FF9800',
+                    '#E91E63', '#9C27B0', '#3F51B5', '#00BCD4'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            getRandomShape() {
+                const shapes = ['rectangle', 'circle', 'triangle', 'star'];
+                return shapes[Math.floor(Math.random() * shapes.length)];
+            }
+
+            update() {
+                this.time += 0.1;
+                
+                // Add wobble effect for realistic confetti motion
+                this.x += this.speedX + Math.sin(this.time * this.wobbleSpeed) * this.wobble;
+                this.y += this.speedY;
+                this.speedY += this.gravity;
+                this.rotation += this.rotationSpeed;
+                this.opacity -= this.decay;
+                
+                // Add air resistance
+                this.speedX *= 0.99;
+                this.speedY *= 0.995;
+                
+                // Slow down rotation as it falls
+                this.rotationSpeed *= 0.99;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+
+                switch(this.shape) {
+                    case 'rectangle':
+                        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                        break;
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -this.height / 2);
+                        ctx.lineTo(-this.width / 2, this.height / 2);
+                        ctx.lineTo(this.width / 2, this.height / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'star':
+                        this.drawStar(0, 0, 5, this.width / 2, this.width / 4);
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                const step = Math.PI / spikes;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            isDead() {
+                return this.opacity <= 0 || this.y > canvas.height + 100;
+            }
+        }
+
+        function createConfetti(x, y, count = 80) {
+            for (let i = 0; i < count; i++) {
+                confettiPieces.push(new ConfettiPiece(x, y));
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = confettiPieces.length - 1; i >= 0; i--) {
+                const piece = confettiPieces[i];
+                piece.update();
+                piece.draw();
+
+                if (piece.isDead()) {
+                    confettiPieces.splice(i, 1);
+                }
+            }
+
+            if (confettiPieces.length > 0) {
+                animationId = requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        function triggerConfetti(event) {
+            const button = event.target;
+            const rect = button.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            // Create pulse ring effect
+            const ring = document.createElement('div');
+            ring.className = 'pulse-ring';
+            ring.style.left = (x - 50) + 'px';
+            ring.style.top = (y - 50) + 'px';
+            ring.style.width = '100px';
+            ring.style.height = '100px';
+            document.body.appendChild(ring);
+
+            // Remove ring after animation
+            setTimeout(() => {
+                document.body.removeChild(ring);
+            }, 1000);
+
+            // Create confetti
+            createConfetti(x, y, 100);
+            
+            // Start animation if not already running
+            if (!animationId) {
+                animateConfetti();
+            }
+
+            // Add some button feedback
+            button.style.transform = 'translateY(-1px) scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+        }
+
+        // Add some sparkle particles continuously
+        function addSparkles() {
+            if (Math.random() < 0.02) {
+                createConfetti(
+                    Math.random() * canvas.width,
+                    -20,
+                    1
+                );
+                if (confettiPieces.length > 0 && !animationId) {
+                    animateConfetti();
+                }
+            }
+        }
+
+        // Remove ambient sparkles - focusing on button confetti only
+        // setInterval(addSparkles, 100);
+
+    
+    </script>
+
+    <!-- CONFETTI END HERE -->
+                    <div class="hero-image">
+                        <div class="image-placeholder">
+                            <img src="img/woman.png" alt="A description of the image">
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card global-stat">
+                        <div class="pie-chart">
+                            <div class="pie-slice"></div>
+                            <div class="pie-center">
+                                <span class="pie-number">25%</span>
+                            </div>
+                        </div>
+                        <p class="stat-description">
+                            <strong>1 in 4</strong> globally lack access<br>
+                            to clean drinking water
+                        </p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-number">20.3M</div>
+                        <p class="stat-description">
+                            <strong>People</strong> now drinking<br>
+                            water thanks have<br>
+                            to charity: water
+                        </p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-number">180K</div>
+                        <p class="stat-description">
+                            <strong>Projects</strong> funded along<br>
+                            with the help of you and<br>
+                            our local partners
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-indicators">
+            <div class="container">
+                <div class="trust-grid">
+                    <div class="trust-badge">
+                        <div class="global-impact"></div>
+                         <img src="img/global-impact-awards.png" width="64">
+                         <span> Global Impact Awards</span>
+                    </div>
+                    <div class="trust-badge">
+                        <div class="bbb"></div>
+                        <img src="img/Better-Business-Bureau-Emblem.png" width="64">
+                        <span>BBB Accredited</span>
+                    </div>
+                    <div class="trust-badge">
+                        <div class="charity-nav"></div>
+                        <img src="img/images.png" width="64">
+                        <span>Charity Navigator</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Add smooth scrolling and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.stat-card').forEach(card => {
+                observer.observe(card);
+            });
+
+            // Add hover effects to buttons
+            const buttons = document.querySelectorAll('.primary-button, .cta-button');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
